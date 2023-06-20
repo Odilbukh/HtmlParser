@@ -2,37 +2,27 @@
 
 class SimpleHtmlParser implements HtmlParserInterface
 {
+    private $tagCounts = [];
     public function parse(string $html): array
     {
-        $tagCounts = [];
-        $pos = 0;
 
-        while (($start = strpos($html, '<', $pos)) !== false) {
-            $end = strpos($html, '>', $start);
-            if ($end === false) {
-                break;
-            }
+        $this->tagCounts = [];
 
-            $tag = substr($html, $start + 1, $end - $start - 1);
+        $pattern = '/<([a-zA-Z0-9]+)(?:\s|>)/';
+
+        preg_match_all($pattern, $html, $matches);
+
+        $tags = $matches[1];
+
+        foreach ($tags as $tag) {
             $tag = strtolower($tag);
-
-            if (strpos($tag, '/') === 0) {
-                // Закрывающий тег, удалить его из подсчета
-                $tag = substr($tag, 1);
-            } elseif (strpos($tag, ' ') !== false) {
-                // Пометить и удалить атрибуты
-                $tag = substr($tag, 0, strpos($tag, ' '));
-            }
-
-            if (isset($tagCounts[$tag])) {
-                $tagCounts[$tag]++;
+            if (isset($this->tagCounts[$tag])) {
+                $this->tagCounts[$tag]++;
             } else {
-                $tagCounts[$tag] = 1;
+                $this->tagCounts[$tag] = 1;
             }
-
-            $pos = $end + 1;
         }
 
-        return $tagCounts;
+        return $this->tagCounts;
     }
 }
